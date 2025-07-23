@@ -5,25 +5,26 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { ArrowRight, Users, TrendingUp, DollarSign } from 'lucide-react';
 import ContentCard from '@/components/content-card';
-import { getLatestArticles } from '@/lib/mock-data';
+import { fetchLatestArticles } from '@/lib/api';
 
-export default function Home() {
-  const latestArticles = getLatestArticles(3);
+export default async function Home() {
+  // 백엔드 API에서 최신 기사 3개 가져오기
+  const latestArticles = await fetchLatestArticles(3);
 
   const categories = [
     {
-      name: '시민참여 (Civic Engagement)',
-      description: '시민의 목소리가 정책이 되는 과정을 탐구합니다.',
+      name: '시민참여',
+      description: '기술이 만드는 새로운 민주주의와 시민의 역할 변화를 탐구합니다.',
       icon: <Users className="w-12 h-12 text-primary" />,
     },
     {
-      name: '메가트렌드 (Megatrends)',
-      description: '기술, 사회, 경제의 거대한 흐름을 분석하고 미래를 예측합니다.',
+      name: '메가트렌드',
+      description: 'AI, 기후변화 등 거대한 흐름 속에서 기회와 위기를 분석합니다.',
       icon: <TrendingUp className="w-12 h-12 text-primary" />,
     },
     {
-      name: '기본소득 (Basic Income)',
-      description: '모두의 기본적인 삶을 보장하는 새로운 사회 안전망을 논합니다.',
+      name: '기본소득',
+      description: '미래 사회의 대안, 기본소득의 전 세계적 실험과 담론을 추적합니다.',
       icon: <DollarSign className="w-12 h-12 text-primary" />,
     },
   ];
@@ -39,7 +40,7 @@ export default function Home() {
             <span className="text-primary">핵심을 꿰뚫는 인사이트</span>
           </h1>
           <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground">
-            '시빅 파라다임'은 사회 변화, 기술 트렌드, 정치 혁신의 중심에서 길어 올린 깊이 있는 분석과 전망을 제공합니다.
+            '시빅 파라다임'은 시민참여, 메가트렌드, 기본소득의 교차점에서 미래를 탐색합니다. 깊이 있는 분석으로 세상을 주도적으로 이해하는 눈을 기르세요.
           </p>
           <div className="mt-8 max-w-md mx-auto flex flex-col sm:flex-row gap-4">
             <Input
@@ -59,7 +60,7 @@ export default function Home() {
       <section className="w-full py-16 md:py-24">
         <div className="container mx-auto px-4">
           <h2 className="font-headline text-3xl md:text-4xl font-bold text-center text-foreground mb-12">
-            최신 콘텐츠 미리보기
+            최신 콘텐츠
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {latestArticles.map((article) => (
@@ -80,7 +81,7 @@ export default function Home() {
       <section className="w-full py-16 md:py-24 bg-secondary/50">
         <div className="container mx-auto px-4">
           <h2 className="font-headline text-3xl md:text-4xl font-bold text-center text-foreground mb-12">
-            주요 카테고리
+            우리의 핵심 카테고리
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             {categories.map((category) => (
@@ -91,39 +92,6 @@ export default function Home() {
               </Card>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Trust/Recommendation Section */}
-      <section className="w-full py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <Card className="bg-primary text-primary-foreground p-8 md:p-12 lg:p-16 rounded-lg">
-            <div className="flex flex-col lg:flex-row items-center gap-8">
-              <div className="flex-shrink-0">
-                <Image
-                  src="https://placehold.co/150x150.png"
-                  alt="Recommender"
-                  width={150}
-                  height={150}
-                  className="rounded-full border-4 border-primary-foreground/50"
-                  data-ai-hint="person portrait"
-                />
-              </div>
-              <div>
-                <h2 className="font-headline text-2xl md:text-3xl font-bold mb-4">이런 분들께 추천합니다</h2>
-                <ul className="space-y-2 list-disc list-inside text-lg">
-                  <li>단순한 뉴스 요약을 넘어, 현상의 본질을 이해하고 싶은 분</li>
-                  <li>미래 사회의 변화를 주도적으로 준비하고 싶은 기획자, 연구자, 활동가</li>
-                  <li>신뢰할 수 있는 정보원을 통해 꾸준히 지적 성장을 추구하는 분</li>
-                </ul>
-                 <Link href="/subscribe" passHref>
-                    <Button variant="secondary" size="lg" className="mt-6">
-                        구독 플랜 자세히 보기
-                    </Button>
-                </Link>
-              </div>
-            </div>
-          </Card>
         </div>
       </section>
     </div>

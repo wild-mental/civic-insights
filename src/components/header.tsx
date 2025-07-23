@@ -9,10 +9,8 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
 const navLinks = [
-  { href: '/', label: '메인' },
   { href: '/archive', label: '콘텐츠 아카이브' },
   { href: '/subscribe', label: '소개 및 구독' },
-  { href: '/admin/suggest-titles', label: 'AI 제목 제안' },
 ];
 
 export default function Header() {

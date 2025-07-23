@@ -1,4 +1,4 @@
-import { getArticleBySlug, getAllArticles } from '@/lib/mock-data';
+import { fetchArticleBySlug, fetchArticles } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -16,14 +16,16 @@ type ArticlePageProps = {
 };
 
 export async function generateStaticParams() {
-  const articles = getAllArticles();
+  // 백엔드 API에서 모든 기사를 가져와서 정적 경로 생성
+  const articles = await fetchArticles();
   return articles.map((article) => ({
     slug: article.slug,
   }));
 }
 
-export default function ArticlePage({ params }: ArticlePageProps) {
-  const article = getArticleBySlug(params.slug);
+export default async function ArticlePage({ params }: ArticlePageProps) {
+  // 백엔드 API에서 특정 기사 가져오기
+  const article = await fetchArticleBySlug(params.slug);
 
   if (!article) {
     notFound();
@@ -40,7 +42,9 @@ export default function ArticlePage({ params }: ArticlePageProps) {
         <div className="mb-4">
           <Link href="/archive">
             <Badge variant="outline" className="cursor-pointer hover:bg-secondary">
-              {article.category}
+              {article.category === 'Civic Engagement' ? '시민참여' : 
+               article.category === 'Megatrends' ? '메가트렌드' : 
+               article.category === 'Basic Income' ? '기본소득' : article.category}
             </Badge>
           </Link>
         </div>
@@ -61,7 +65,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
       </header>
 
       <div className="relative w-full h-64 md:h-96 rounded-lg overflow-hidden mb-8 md:mb-12 shadow-lg">
-        <Image src={article.image} alt={article.title} fill style={{ objectFit: 'cover' }} priority data-ai-hint={article['data-ai-hint']} />
+        <Image src={article.image} alt={article.title} fill style={{ objectFit: 'cover' }} priority />
       </div>
       
       <div className="prose prose-lg max-w-none prose-p:font-body prose-headings:font-headline prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary">

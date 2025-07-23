@@ -9,6 +9,20 @@ type ContentCardProps = {
   article: Article;
 };
 
+// 카테고리를 한국어로 변환하는 함수
+function getCategoryDisplayName(category: string): string {
+  switch (category) {
+    case 'Civic Engagement':
+      return '시민참여';
+    case 'Megatrends':
+      return '메가트렌드';
+    case 'Basic Income':
+      return '기본소득';
+    default:
+      return category;
+  }
+}
+
 export default function ContentCard({ article }: ContentCardProps) {
   return (
     <Link href={`/archive/${article.slug}`} className="group block">
@@ -21,7 +35,6 @@ export default function ContentCard({ article }: ContentCardProps) {
               fill
               style={{ objectFit: 'cover' }}
               className="transition-transform duration-500 group-hover:scale-105"
-              data-ai-hint={article['data-ai-hint']}
             />
              <Badge 
               variant={article.type === 'paid' ? 'default' : 'secondary'} 
@@ -33,7 +46,7 @@ export default function ContentCard({ article }: ContentCardProps) {
           </div>
         </CardHeader>
         <CardContent className="p-6 flex-grow">
-          <Badge variant="outline" className="mb-2">{article.category}</Badge>
+          <Badge variant="outline" className="mb-2">{getCategoryDisplayName(article.category)}</Badge>
           <CardTitle className="font-headline text-xl leading-snug mb-2 group-hover:text-primary transition-colors">
             {article.title}
           </CardTitle>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시빅 파라다임 | Civic Paradigm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals with a Touch of Slate Blue -->
+    <!-- Application Structure Plan: A Single-Page Application (SPA) approach is used. All 'pages' (Main, Archive, About, Detail) are sections within this single file. JavaScript handles showing/hiding these sections to create a seamless, no-reload user experience. This structure is chosen for its speed, modern feel, and suitability for an MVP, directly translating the sitemap into interactive, switchable views without multi-page complexity. -->
+    <!-- Visualization & Content Choices: Requirements are met with structured HTML/CSS and vanilla JS. Key interactions include: dynamic category filtering (JS manipulating card visibility), a simulated paywall for premium content (JS showing/hiding content sections and applying a blur overlay), and native HTML `<details>` for an accessible FAQ accordion. No charts are needed, hence no Chart.js/Plotly. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8f7f4;
+            color: #1e293b;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .paywall-blur {
+            filter: blur(8px);
+            -webkit-filter: blur(8px);
+        }
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        details[open] summary .arrow-down {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-40 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <a href="#" class="text-2xl font-bold text-slate-800 nav-link" data-page="main">시빅 파라다임</a>
+                </div>
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="text-slate-600 hover:text-blue-600 transition-colors nav-link" data-page="archive">콘텐츠 아카이브</a>
+                    <a href="#" class="text-slate-600 hover:text-blue-600 transition-colors nav-link" data-page="about">소개 및 구독</a>
+                </nav>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="p-2 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 nav-link" data-page="archive">콘텐츠 아카이브</a>
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 nav-link" data-page="about">소개 및 구독</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        
+        <!-- =======================
+             메인 (랜딩) 페이지
+        ======================== -->
+        <section id="page-main" class="page active">
+            <div class="text-center py-16">
+                <h1 class="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
+                    복잡한 세상의 변화,<br class="hidden sm:block">
+                    <span class="text-blue-600">핵심을 꿰뚫는 인사이트</span>
+                </h1>
+                <p class="mt-6 max-w-2xl mx-auto text-lg text-slate-600">
+                    '시빅 파라다임'은 시민참여, 메가트렌드, 기본소득의 교차점에서 미래를 탐색합니다. 깊이 있는 분석으로 세상을 주도적으로 이해하는 눈을 기르세요.
+                </p>
+                <div class="mt-10 max-w-md mx-auto">
+                    <form id="subscribe-form-main" class="flex flex-col sm:flex-row gap-3">
+                        <input type="email" required placeholder="이메일 주소를 입력하세요" class="flex-grow w-full px-4 py-3 rounded-md border-slate-300 focus:ring-blue-500 focus:border-blue-500 transition">
+                        <button type="submit" class="bg-blue-600 text-white font-bold px-6 py-3 rounded-md hover:bg-blue-700 transition-transform transform hover:scale-105">
+                            무료로 시작하기
+                        </button>
+                    </form>
+                    <p id="subscribe-feedback-main" class="mt-3 text-green-600 font-medium"></p>
+                </div>
+            </div>
+
+            <div class="mt-16">
+                <h2 class="text-2xl font-bold text-center text-slate-800">최신 콘텐츠</h2>
+                <div id="latest-content-container" class="mt-8 grid gap-8 md:grid-cols-3">
+                </div>
+            </div>
+
+            <div class="mt-20 bg-white rounded-xl shadow-lg p-8 sm:p-12">
+                <h2 class="text-2xl font-bold text-center text-slate-800">우리의 핵심 카테고리</h2>
+                <div class="mt-10 grid md:grid-cols-3 gap-8 text-center">
+                    <div>
+                        <div class="text-3xl mb-2">🏛️</div>
+                        <h3 class="text-lg font-bold text-slate-900">시민참여</h3>
+                        <p class="mt-2 text-slate-600">기술이 만드는 새로운 민주주의와 시민의 역할 변화를 탐구합니다.</p>
+                    </div>
+                    <div>
+                        <div class="text-3xl mb-2">📈</div>
+                        <h3 class="text-lg font-bold text-slate-900">메가트렌드</h3>
+                        <p class="mt-2 text-slate-600">AI, 기후변화 등 거대한 흐름 속에서 기회와 위기를 분석합니다.</p>
+                    </div>
+                    <div>
+                        <div class="text-3xl mb-2">💰</div>
+                        <h3 class="text-lg font-bold text-slate-900">기본소득</h3>
+                        <p class="mt-2 text-slate-600">미래 사회의 대안, 기본소득의 전 세계적 실험과 담론을 추적합니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =======================
+             콘텐츠 아카이브 페이지
+        ======================== -->
+        <section id="page-archive" class="page">
+            <div class="space-y-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900">콘텐츠 아카이브</h1>
+                    <p class="mt-2 text-lg text-slate-600">'시빅 파라다임'이 발행한 모든 인사이트를 만나보세요.</p>
+                </div>
+                <div id="category-filters" class="flex flex-wrap gap-2">
+                </div>
+                <div id="archive-content-container" class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                </div>
+            </div>
+        </section>
+
+        <!-- =======================
+             콘텐츠 상세 페이지
+        ======================== -->
+        <section id="page-detail" class="page">
+            <div class="max-w-3xl mx-auto">
+                <button id="back-to-archive" class="mb-6 text-slate-600 hover:text-blue-600 font-medium flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                    아카이브로 돌아가기
+                </button>
+                <div id="detail-content-wrapper"></div>
+            </div>
+        </section>
+
+        <!-- =======================
+             소개 및 구독 안내 페이지
+        ======================== -->
+        <section id="page-about" class="page">
+            <div class="space-y-16">
+                <div class="text-center">
+                    <h1 class="text-3xl font-bold text-slate-900">우리의 미션</h1>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">
+                        '시빅 파라다임'은 흩어진 정보의 파편을 모아 시대를 읽는 지도를 그립니다. 복잡한 사회 현상의 본질을 꿰뚫는 깊이 있는 분석과 통찰력으로, 당신이 세상의 변화를 주도적으로 이해하고 더 나은 미래를 만드는 데 기여하고자 합니다. 우리는 단순한 뉴스 전달을 넘어, 생각의 틀을 확장하는 지적 동반자가 되겠습니다.
+                    </p>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-bold text-center text-slate-800 mb-8">구독 플랜</h2>
+                    <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="p-4 font-medium text-slate-700">기능</th>
+                                    <th class="p-4 text-center font-medium text-slate-700">무료 구독자</th>
+                                    <th class="p-4 text-center font-medium text-slate-700 bg-blue-50">유료 구독자 (Premium)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200">
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4 font-medium">위클리 브리핑</td>
+                                    <td class="p-4 text-center text-green-500 font-bold">✓</td>
+                                    <td class="p-4 text-center text-green-500 font-bold">✓</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4 font-medium">심층 분석 리포트</td>
+                                    <td class="p-4 text-center text-red-500 font-bold">✗</td>
+                                    <td class="p-4 text-center text-green-500 font-bold">✓</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4 font-medium">전문가 인터뷰</td>
+                                    <td class="p-4 text-center text-red-500 font-bold">✗</td>
+                                    <td class="p-4 text-center text-green-500 font-bold">✓</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4 font-medium">구독자 커뮤니티 접근</td>
+                                    <td class="p-4 text-center text-red-500 font-bold">✗</td>
+                                    <td class="p-4 text-center text-green-500 font-bold">✓</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="p-6 bg-slate-50 text-center">
+                            <button class="bg-blue-600 text-white font-bold px-8 py-3 rounded-md hover:bg-blue-700 transition-transform transform hover:scale-105">
+                                Premium 구독하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-bold text-center text-slate-800 mb-8">자주 묻는 질문 (FAQ)</h2>
+                    <div class="max-w-2xl mx-auto space-y-4">
+                        <details class="bg-white p-4 rounded-lg shadow-sm group">
+                            <summary class="font-medium text-slate-800 cursor-pointer flex justify-between items-center">
+                                콘텐츠는 얼마나 자주 발행되나요?
+                                <span class="arrow-down transition-transform duration-300">▼</span>
+                            </summary>
+                            <p class="mt-4 text-slate-600">매주 1회 위클리 브리핑(무료)이 발행되며, 월 2회 심층 분석 리포트(유료)가 발행됩니다. 전문가 인터뷰는 비정기적으로 발행됩니다.</p>
+                        </details>
+                        <details class="bg-white p-4 rounded-lg shadow-sm group">
+                            <summary class="font-medium text-slate-800 cursor-pointer flex justify-between items-center">
+                                유료 구독 해지는 어떻게 하나요?
+                                <span class="arrow-down transition-transform duration-300">▼</span>
+                            </summary>
+                            <p class="mt-4 text-slate-600">언제든지 마이페이지에서 구독을 해지할 수 있습니다. 다음 결제 주기부터는 요금이 청구되지 않으며, 남은 기간 동안은 계속해서 유료 콘텐츠를 이용하실 수 있습니다.</p>
+                        </details>
+                        <details class="bg-white p-4 rounded-lg shadow-sm group">
+                            <summary class="font-medium text-slate-800 cursor-pointer flex justify-between items-center">
+                                결제 수단은 어떤 것이 있나요?
+                                <span class="arrow-down transition-transform duration-300">▼</span>
+                            </summary>
+                            <p class="mt-4 text-slate-600">현재 국내외 모든 신용카드를 통한 결제를 지원하고 있습니다. MVP 단계 이후, 더 다양한 결제 수단을 추가할 예정입니다.</p>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-400">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+                <div>
+                    <h3 class="text-lg font-bold text-white">시빅 파라다임</h3>
+                    <p class="mt-1">세상의 변화를 읽는 새로운 기준</p>
+                </div>
+                <div class="mt-4 md:mt-0 flex space-x-6">
+                    <a href="#" class="hover:text-white">서비스 약관</a>
+                    <a href="#" class="hover:text-white">개인정보처리방침</a>
+                </div>
+            </div>
+            <div class="mt-8 border-t border-slate-700 pt-8 text-center text-sm">
+                <p>&copy; 2025 Civic Paradigm. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const articles = [
+        {
+            id: 1,
+            title: "AI 시대의 시민참여, 위기인가 기회인가",
+            summary: "인공지능 기술이 민주주의에 미치는 영향을 분석하고, 시민들이 기술 발전에 주도적으로 참여할 수 있는 새로운 방안을 모색합니다.",
+            content: `
+                <p>인공지능(AI)은 사회 전반에 걸쳐 혁명적인 변화를 가져오고 있습니다. 특히 정치와 민주주의 영역에서 AI의 영향력은 날로 커지고 있죠. 알고리즘 기반의 뉴스 추천 시스템은 여론 형성에 막대한 영향을 미치고, 챗봇을 활용한 정치 캠페인은 유권자와의 소통 방식을 바꾸고 있습니다.</p>
+                <p class="mt-4">이러한 변화는 우리에게 중요한 질문을 던집니다. AI 기술이 시민들의 정치 참여를 더욱 활성화하고, 숙의 민주주의를 발전시키는 기회가 될 수 있을까요? 아니면 오히려 정보 편향을 심화시키고, 소수의 기술 기업에 권력을 집중시키는 위기로 작용할까요?</p>
+                <p class="mt-4">본 리포트에서는 AI 시대의 시민참여가 마주한 기회와 위기 요인을 심층적으로 분석합니다. 유럽연합의 'AI Act'와 같은 규제 동향을 살펴보고, 대만의 'vTaiwan'과 같은 디지털 시민참여 플랫폼의 성공 사례를 통해 기술을 활용한 민주주의 혁신의 가능성을 탐색합니다. 궁극적으로 시민들이 기술 발전의 수동적인 소비자가 아닌, 적극적인 설계자이자 참여자로 거듭나기 위한 구체적인 전략을 제시하고자 합니다.</p>
+            `,
+            category: "시민참여",
+            type: "무료",
+            createdAt: "2025-07-21"
+        },
+        {
+            id: 2,
+            title: "[Premium] 기본소득, 과연 대안이 될 수 있을까? 핀란드 실험 심층 분석",
+            summary: "전 세계적인 주목을 받았던 핀란드의 기본소득 실험 결과를 심층 분석하고, 한국 사회에 주는 시사점을 도출합니다.",
+            content: `
+                <p>기본소득은 더 이상 먼 미래의 이야기가 아닙니다. 4차 산업혁명으로 인한 일자리 감소와 심화되는 불평등에 대한 대안으로 전 세계적인 주목을 받고 있습니다. 가장 대표적인 사례는 2017년부터 2년간 진행된 핀란드의 기본소득 실험입니다.</p>
+                <p class="mt-4">핀란드 정부는 2,000명의 실업자에게 매달 560유로(약 75만원)를 조건 없이 지급했습니다. 이 실험은 기본소득이 사람들의 고용, 건강, 행복에 어떤 영향을 미치는지 알아보기 위해 설계되었습니다. 결과는 매우 흥미로웠습니다. 기본소득 수급자들은 대조군에 비해 행복감과 정신 건강 수준이 유의미하게 향상되었지만, 고용 효과는 미미한 것으로 나타났습니다.</p>
+                <p class="mt-4">[이후 내용은 유료 구독자만 보실 수 있습니다.]</p>
+                <p class="mt-4">본 리포트에서는 핀란드 실험의 공식 데이터와 관련 연구들을 종합하여, 실험의 성공과 한계를 다각도로 분석합니다. 특히 '고용 없는 성장' 시대에 기본소득이 복지 제도의 패러다임을 어떻게 바꿀 수 있는지, 그리고 한국 사회에 적용하기 위해 고려해야 할 재원 문제와 사회적 합의 과정은 무엇인지 심도 있게 논의합니다.</p>
+            `,
+            category: "기본소득",
+            type: "유료",
+            createdAt: "2025-07-18"
+        },
+        {
+            id: 3,
+            title: "기후변화와 공급망 재편: 새로운 경제 지도가 그려진다",
+            summary: "기후 위기가 글로벌 공급망에 미치는 영향을 분석하고, 탄소중립 시대를 선도하기 위한 기업과 정부의 생존 전략을 제시합니다.",
+            content: `
+                <p>기후변화는 더 이상 환경 문제가 아닌, 경제 문제입니다. 이상 기후로 인한 생산 차질, 탄소 국경세 도입 등 기후 위기는 전 세계 공급망을 뿌리부터 흔들고 있습니다. 팬데믹 이후 안정적인 공급망 확보가 기업의 핵심 경쟁력으로 떠오른 지금, 기후 리스크 관리는 선택이 아닌 필수가 되었습니다.</p>
+                <p class="mt-4">특히 반도체, 배터리 등 핵심 산업의 공급망은 지정학적 리스크와 기후 리스크에 동시에 노출되어 있습니다. 가뭄으로 인한 대만의 반도체 공장 가동 중단, 홍수로 인한 태국의 자동차 부품 공장 침수 등은 기후변화가 기업의 생산 활동에 얼마나 치명적인 영향을 미칠 수 있는지 보여주는 대표적인 사례입니다.</p>
+                <p class="mt-4">이 글에서는 기후변화가 촉발하는 글로벌 공급망 재편의 주요 동향을 살펴보고, 이에 대응하기 위한 기업들의 전략적 변화를 분석합니다. 또한 '녹색보호무역주의'의 부상 속에서 우리 정부와 기업이 탄소중립 시대를 선도하고 새로운 기회를 창출하기 위해 무엇을 준비해야 하는지 구체적인 방향을 제시합니다.</p>
+            `,
+            category: "메가트렌드",
+            type: "무료",
+            createdAt: "2025-07-15"
+        },
+        {
+            id: 4,
+            title: "[Premium] 분산원장기술(DLT)은 어떻게 거버넌스를 혁신하는가",
+            summary: "블록체인을 넘어, 분산원장기술이 만들어낼 투명하고 효율적인 미래 조직의 모습을 조망합니다. DAO의 성공과 실패 사례를 통해 실질적인 가능성을 탐색합니다.",
+            content: `
+                <p>탈중앙화 자율조직, 즉 DAO(Decentralized Autonomous Organization)는 블록체인 기술이 단순한 암호화폐를 넘어 사회 조직의 운영 방식까지 혁신할 수 있다는 가능성을 보여주며 큰 주목을 받았습니다. 스마트 컨트랙트에 의해 코드로 운영되는 조직이라는 개념은 많은 이들에게 영감을 주었죠.</p>
+                <p class="mt-4">하지만 'The DAO' 해킹 사건에서 보듯, DAO의 길은 순탄치만은 않았습니다. 기술적 취약점, 법적 지위의 불확실성, 그리고 인간적인 갈등 요소는 여전히 해결해야 할 과제로 남아있습니다. 그럼에도 불구하고, 분산원장기술(DLT) 기반의 거버넌스 모델은 계속해서 진화하고 있습니다.</p>
+                <p class="mt-4">[이후 내용은 유료 구독자만 보실 수 있습니다.]</p>
+                <p class="mt-4">본 리포트에서는 DAO를 포함한 DLT 기반 거버넌스 모델들의 작동 원리를 기술적으로 분석하고, 실제 성공 및 실패 사례들을 통해 그 한계와 가능성을 명확히 짚어봅니다. 이를 통해 미래 기업, 비영리 단체, 심지어 정부 기관이 어떻게 더 투명하고, 효율적이며, 민주적인 의사결정 구조를 갖출 수 있을지에 대한 청사진을 제시합니다.</p>
+            `,
+            category: "시민참여",
+            type: "유료",
+            createdAt: "2025-07-11"
+        },
+        {
+            id: 5,
+            title: "대한민국 인구절벽, 데이터로 보는 미래 시나리오",
+            summary: "통계청의 최신 인구 추계 데이터를 바탕으로 2050년 대한민국의 모습을 예측하고, 사회 각 분야에서 준비해야 할 과제들을 점검합니다.",
+            content: `
+                <p>대한민국의 인구 감소 속도가 예상을 뛰어넘고 있습니다. 세계 최저 수준의 출산율과 빠른 고령화는 우리 사회의 지속가능성을 위협하는 가장 큰 구조적 문제입니다. '지방 소멸'은 이미 현실이 되었고, 국민연금 고갈, 생산가능인구 감소 등 암울한 전망이 연일 쏟아지고 있습니다.</p>
+                <p class="mt-4">하지만 위기 속에서도 변화의 기회는 존재합니다. 인구 구조의 변화는 새로운 산업의 등장을 촉진하고, 기존 사회 시스템의 비효율을 개선하는 계기가 될 수 있습니다. 중요한 것은 미래를 정확히 예측하고, 선제적으로 대응하는 것입니다.</p>
+                <p class="mt-4">본 글에서는 통계청의 장래인구추계 데이터를 시각화하여 2050년 대한민국의 인구 피라미드, 지역별 인구 분포, 부양비 변화 등을 독자들이 직관적으로 이해할 수 있도록 제시합니다. 그리고 이를 바탕으로 연금 개혁, 이민 정책, 교육 시스템, 부동산 시장 등 우리 사회가 마주할 구체적인 변화와 시급히 논의를 시작해야 할 핵심 과제들을 조목조목 짚어봅니다.</p>
+            `,
+            category: "메가트렌드",
+            type: "무료",
+            createdAt: "2025-07-08"
+        }
+    ];
+
+    const pages = document.querySelectorAll('.page');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    let lastActivePage = 'main';
+
+    function navigateTo(pageId, articleId = null) {
+        pages.forEach(page => page.classList.remove('active'));
+        const targetPage = document.getElementById(pageId);
+        if (targetPage) {
+            targetPage.classList.add('active');
+            window.scrollTo(0, 0);
+        }
+        
+        if (pageId === 'page-detail' && articleId) {
+            renderArticleDetail(articleId);
+            lastActivePage = 'archive';
+        } else if (pageId !== 'page-detail') {
+            lastActivePage = pageId;
+        }
+
+        mobileMenu.classList.add('hidden');
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const pageId = link.getAttribute('data-page');
+            navigateTo(`page-${pageId}`);
+        });
+    });
+
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    document.getElementById('back-to-archive').addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateTo(lastActivePage === 'main' ? 'page-main' : 'page-archive');
+    });
+    
+    function createArticleCard(article) {
+        const typeBadge = article.type === '유료'
+            ? `<span class="absolute top-3 right-3 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">Premium</span>`
+            : `<span class="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">Free</span>`;
+        
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden cursor-pointer relative';
+        card.innerHTML = `
+            <div class="p-6">
+                ${typeBadge}
+                <span class="text-sm font-medium text-blue-600">${article.category}</span>
+                <h3 class="mt-2 text-lg font-bold text-slate-900 leading-snug">${article.title}</h3>
+                <p class="mt-2 text-sm text-slate-600">${article.summary}</p>
+            </div>
+        `;
+        card.addEventListener('click', () => navigateTo('page-detail', article.id));
+        card.dataset.category = article.category;
+        return card;
+    }
+
+    function renderLatestContent() {
+        const container = document.getElementById('latest-content-container');
+        container.innerHTML = '';
+        articles.slice(0, 3).forEach(article => {
+            container.appendChild(createArticleCard(article));
+        });
+    }
+
+    function renderArchive(filter = '전체') {
+        const container = document.getElementById('archive-content-container');
+        container.innerHTML = '';
+        const filteredArticles = filter === '전체' 
+            ? articles 
+            : articles.filter(a => a.category === filter);
+
+        filteredArticles.forEach(article => {
+            container.appendChild(createArticleCard(article));
+        });
+    }
+
+    function renderCategoryFilters() {
+        const container = document.getElementById('category-filters');
+        const categories = ['전체', ...new Set(articles.map(a => a.category))];
+        container.innerHTML = categories.map(cat => 
+            `<button class="filter-btn px-4 py-2 text-sm font-medium rounded-full transition-colors ${cat === '전체' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}" data-category="${cat}">${cat}</button>`
+        ).join('');
+
+        container.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                container.querySelectorAll('.filter-btn').forEach(b => {
+                    b.classList.remove('bg-blue-600', 'text-white');
+                    b.classList.add('bg-slate-200', 'text-slate-700', 'hover:bg-slate-300');
+                });
+                btn.classList.add('bg-blue-600', 'text-white');
+                btn.classList.remove('bg-slate-200', 'text-slate-700', 'hover:bg-slate-300');
+                renderArchive(btn.dataset.category);
+            });
+        });
+    }
+
+    function renderArticleDetail(articleId) {
+        const article = articles.find(a => a.id === articleId);
+        const container = document.getElementById('detail-content-wrapper');
+        if (!article) {
+            container.innerHTML = `<p>콘텐츠를 찾을 수 없습니다.</p>`;
+            return;
+        }
+
+        let contentHtml;
+        if (article.type === '무료') {
+            contentHtml = `
+                <div class="prose max-w-none text-slate-700">${article.content}</div>
+                <div class="mt-12 p-6 bg-blue-50 rounded-lg text-center">
+                    <h3 class="text-lg font-bold text-blue-800">'시빅 파라다임'의 더 깊은 인사이트를 원한다면?</h3>
+                    <p class="mt-2 text-blue-700">유료 플랜에 가입하고 모든 심층 분석 리포트를 만나보세요.</p>
+                    <button class="mt-4 bg-blue-600 text-white font-bold px-6 py-2 rounded-md hover:bg-blue-700 transition nav-link-btn" data-page="about">
+                        구독 플랜 보러가기
+                    </button>
+                </div>
+            `;
+        } else {
+            const previewContent = article.content.substring(0, article.content.indexOf('[이후 내용은 유료 구독자만 보실 수 있습니다.]'));
+            const remainingContent = article.content.substring(article.content.indexOf('[이후 내용은 유료 구독자만 보실 수 있습니다.]'));
+            
+            contentHtml = `
+                <div class="prose max-w-none text-slate-700">${previewContent}</div>
+                <div class="relative mt-8">
+                    <div class="prose max-w-none text-slate-700 paywall-blur select-none">${remainingContent}</div>
+                    <div class="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
+                        <div class="text-center p-8 bg-white shadow-2xl rounded-xl max-w-md">
+                            <div class="text-2xl mb-2">🔒</div>
+                            <h3 class="text-xl font-bold text-slate-900">유료 구독자 전용 콘텐츠입니다</h3>
+                            <p class="mt-2 text-slate-600">더 깊이 있는 분석을 보려면 Premium 구독이 필요합니다.</p>
+                            <button class="mt-6 w-full bg-blue-600 text-white font-bold px-6 py-3 rounded-md hover:bg-blue-700 transition nav-link-btn" data-page="about">
+                                유료 플랜 상세보기 / 구독하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = `
+            <article class="space-y-4">
+                <span class="text-sm font-bold text-blue-600">${article.category}</span>
+                <h1 class="text-3xl md:text-4xl font-bold text-slate-900 leading-tight">${article.title}</h1>
+                <p class="text-slate-500">${new Date(article.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 발행</p>
+                <div class="border-t border-slate-200 my-8"></div>
+                ${contentHtml}
+                <div class="border-t border-slate-200 my-8"></div>
+                <div class="flex items-center justify-between">
+                    <p class="font-medium">이 기사가 마음에 드셨나요? 공유해주세요!</p>
+                    <div class="flex space-x-2">
+                        <a href="#" class="w-10 h-10 flex items-center justify-center bg-slate-200 rounded-full text-slate-600 hover:bg-blue-600 hover:text-white transition">F</a>
+                        <a href="#" class="w-10 h-10 flex items-center justify-center bg-slate-200 rounded-full text-slate-600 hover:bg-blue-600 hover:text-white transition">T</a>
+                        <a href="#" class="w-10 h-10 flex items-center justify-center bg-slate-200 rounded-full text-slate-600 hover:bg-blue-600 hover:text-white transition">L</a>
+                    </div>
+                </div>
+            </article>
+        `;
+        
+        container.querySelectorAll('.nav-link-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                navigateTo(`page-${btn.dataset.page}`);
+            });
+        });
+    }
+
+    function handleSubscription(formId, feedbackId) {
+        const form = document.getElementById(formId);
+        const feedback = document.getElementById(feedbackId);
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const emailInput = form.querySelector('input[type="email"]');
+            feedback.textContent = `"${emailInput.value}" 주소로 구독이 완료되었습니다!`;
+            emailInput.value = '';
+            setTimeout(() => { feedback.textContent = ''; }, 5000);
+        });
+    }
+
+    handleSubscription('subscribe-form-main', 'subscribe-feedback-main');
+    
+    renderLatestContent();
+    renderCategoryFilters();
+    renderArchive();
+
+    navigateTo('page-main');
+});
+</script>
+
+</body>
+</html>
